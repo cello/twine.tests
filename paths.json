@@ -1,0 +1,9 @@
+{
+	"patr": "external/patr",
+	"sinon": "external/sinon",
+	"compose": "external/twine/support/compose",
+	"twine": "external/twine",
+	"promise": "external/twine/support/promise",
+	"test": ".",
+	"lang": "external/twine/support/lang"
+}

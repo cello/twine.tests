@@ -1,0 +1,12 @@
+[submodule "external/twine"]
+	path = external/twine
+	url = git://github.com/neonstalwart/twine.git
+[submodule "external/patr"]
+	path = external/patr
+	url = git://github.com/kriszyp/patr.git
+[submodule "external/sinon"]
+	path = external/sinon
+	url = git://github.com/cjohansen/Sinon.JS.git
+[submodule "external/dojo"]
+	path = external/dojo
+	url = git://github.com/dojo/dojo.git
