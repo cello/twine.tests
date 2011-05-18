@@ -10,3 +10,6 @@
 [submodule "external/dojo"]
 	path = external/dojo
 	url = git://github.com/dojo/dojo.git
+[submodule "external/promised-io"]
+	path = external/promised-io
+	url = https://github.com/kriszyp/promised-io

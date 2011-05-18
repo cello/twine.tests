@@ -8,111 +8,266 @@
     newcap: true, noarg: true, noempty: true, onevar: true, passfail: false, undef: true,
     white: true
 */
-/*global define: false, require: false */
+/*global define: false, require: true */
 
-define(['compose', 'patr/assert', 'twine', 'twine/Kernel'],
-function (compose, assert, Twine, Kernel) {
-    function initCalls(obj) {
-        obj._calls = {};
-        Object.keys(obj).forEach(function (key) {
-            if (typeof obj[key] === 'function') {
-                obj._calls[key] = [];
-            }
-        });
-    }
+define([
+	'test/promiseTestCase',
+	'assert',
+	'twine',
+	'twine/Kernel',
+	'promise'
+], function (testCase, assert, Twine, Kernel, promise) {
+	var originalRequire = require,
+		isBrowser = typeof window !== "undefined";
 
-    var kernel = {
-            addFiber: function () {
-                this._calls.addFiber.push({
-                    args: arguments
-                });
-            },
-            destroy: function () {
-                this._calls.destroy.push({
-                    args: arguments
-                });
-            },
-            ran: function (it) {
-                var calls = this._calls[it];
-                return calls && calls.length > 0;
-            },
-            reset: function () {
-                initCalls(this);
-            }
-        },
-        MockRequire = compose(function MockRequire() {
-            var original = require,
-                mock = this;
+	function browserOnly(test) {
+		return function () {
+			// for now, cause an error so that it draws attention when not in a browser
+			assert.ok(isBrowser, 'browser only test');
+			return test.apply(this, arguments);
+		};
+	}
 
-            this.original = function () {
-                return original;
-            };
-            initCalls(this);
+	return testCase({
+		setUp: function () {
+			this.k = new Kernel();
+			this.t = new Twine({
+				kernel: this.k
+			});
+		},
 
-            require = function () {
-                mock.require.apply(mock, arguments);
-            };
-        }, {
-            require: function () {
-                this._calls.require.push({
-                    args: arguments
-                });
+		tearDown: function () {
+			require = originalRequire;
+			this.t.destroy();
+		},
 
-                this.original().apply(null, arguments);
-            },
-            restore: function () {
-                require = this.original();
-            }
-        }),
-        name = 'test container',
-        container;
+		'test assigns a default name': function () {
+			var t = new Twine();
+			assert.ok(t.name);
+		},
 
-    function setUp() {
-        if (container) {
-            container.destroy();
-        }
+		'test uses name passed to the constructor': function () {
+			var n = 'name',
+				t = new Twine({
+					name: n
+				});
 
-        kernel.reset();
-        container = new Twine({
-            name: name,
-            kernel: kernel
-        });
-    }
+			assert.equal(t.name, n);
+		},
 
-    return {
-        'test twine assigns a default name and kernel': function () {
-            var c = new Twine();
-            assert.ok(c.name, 'twine should assign a default name if none was given');
-            assert.ok(/^twine_\d+$/.test(c.name), 'name should be a default name');
-            assert.ok(c.kernel, 'twine should create a kernel');
-            assert.ok(c.kernel instanceof Kernel, 'kernel should be default kernel');
-        },
-        'test twine accepts a name and kernel': function () {
-            setUp();
+		'test assigns a default kernel': function () {
+			var t = new Twine();
+			assert.ok(t.kernel);
+			assert.ok(t.kernel instanceof Kernel);
+		},
 
-            assert.strictEqual(container.name, name, 'twine should accept a name via constructor');
-            assert.strictEqual(container.kernel, kernel, 'twine should accept kernel');
-        },
-        'test addFiber calls the kernel': function () {
-            setUp();
-            var fiber = {
-                init: function () {},
-                terminate: function () {}
-            };
+		'test uses kernel passed to the constructor': function () {
+			var k = new Kernel(),
+				t = new Twine({
+					kernel: k
+				});
 
-            container.addFiber('id', fiber);
+			assert.equal(t.kernel, k);
+		},
 
-            assert.ok(kernel.ran('addFiber'));
-        },
-        'test an empty configure object won\'t break the container': function () {
-            // XXX: incomplete...
-            var config = {},
-                mockRequire = new MockRequire();
+		'test addFiber calls addFiber on kernel': function () {
+			var expected = {},
+				mock = this.mock(this.k).expects("addFiber").returns(expected).once(),
+				actual;
 
-            setUp();
-            container.configure(config);
+			actual = this.t.addFiber();
+			mock.verify();
+			assert.equal(actual, expected);
+		},
 
-            mockRequire.restore();
-        }
-    };
+		'test configure returns a promise that resolves to the container': function () {
+			var t = this.t,
+				actual = t.configure();
+
+			return promise.when(actual, function (container) {
+				assert.equal(typeof actual.then, 'function');
+				assert.equal(container, container);
+			});
+		},
+
+		'test fibers, installers, components are configured in sequence': function () {
+			var addFiber = this.stub(this.t, 'addFiber'),
+				install = this.stub(this.t, 'install'),
+				addComponentModel = this.stub(this.t.kernel, 'addComponentModel'),
+				fiber = this.spy(),
+				installer = this.spy(),
+				component = this.spy();
+
+			return promise.when(this.t.configure({
+				fibers: [fiber],
+				installers: [installer],
+				components: [component]
+			}), function (container) {
+				assert.ok(addFiber.called);
+				assert.ok(install.called);
+				assert.ok(addComponentModel.called);
+				assert.ok(addFiber.calledBefore(install));
+				assert.ok(install.calledBefore(addComponentModel));
+			});
+		},
+
+		'test fibers specified as strings are module ids to be loaded': browserOnly(function () {
+			var id = 'abc/foo';
+
+			require = this.spy(function (deps, cb) {
+				cb();
+			});
+
+			return promise.when(this.t.configure({
+				fibers: [id]
+			}), function (container) {
+				assert.ok(require.called);
+				var spyCall = require.getCall(0);
+				assert.equal(spyCall.args[0][0], id);
+			});
+		}),
+
+		'test fibers specified as functions are factories to be executed': function () {
+			var fiber = {},
+				factory = this.stub().returns(fiber),
+				addFiber = this.mock(this.t).expects('addFiber').once().withExactArgs(fiber);
+
+			return promise.when(this.t.configure({
+				fibers: [factory]
+			}), function (container) {
+				assert.ok(factory.called, 'fiber factory not called');
+				assert.ok(addFiber.verify());
+			});
+		},
+
+		'test fibers specified as objects are considered instances': function () {
+			var fiber = {},
+				addFiber = this.mock(this.t).expects('addFiber').once().withExactArgs(fiber);
+
+			return promise.when(this.t.configure({
+				fibers: [fiber]
+			}), function (container) {
+				assert.ok(addFiber.verify());
+			});
+		},
+
+		'test installers specified as strings are treated as module ids': browserOnly(function () {
+			var id = 'abc/foo';
+
+			require = this.spy(function (deps, cb) {
+				cb();
+			});
+
+			return promise.when(this.t.configure({
+				installers: [id]
+			}), function (container) {
+				assert.ok(require.called);
+				var spyCall = require.getCall(0);
+				assert.equal(spyCall.args[0][0], id);
+			});
+		}),
+
+		'test installers specified as functions are factories to be executed': function () {
+			var installer = {},
+				factory = this.stub().returns(installer),
+				install = this.mock(this.t).expects('install').once().withExactArgs(installer);
+
+			return promise.when(this.t.configure({
+				installers: [factory]
+			}), function (container) {
+				assert.ok(factory.called, 'fiber factory not called');
+				assert.ok(install.verify());
+			});
+		},
+
+		'test installers specified as objects are considered instances': function () {
+			var installer = {},
+				install = this.mock(this.t).expects('install').once().withExactArgs(installer);
+
+			return promise.when(this.t.configure({
+				installers: [installer]
+			}), function (container) {
+				assert.ok(install.verify());
+			});
+		},
+
+		'test installer.install is called and passed container': function () {
+			var t = this.t,
+				install = this.mock().once().withExactArgs(t),
+				installer = {
+					install: install
+				};
+
+			return promise.when(this.t.configure({
+				installers: [installer]
+			}), function (container) {
+				assert.ok(install.verify());
+				assert.equal(container, t);
+			});
+		},
+
+		'test install returns a promise': function () {
+			var t = this.t,
+				install = this.mock().once().withExactArgs(t),
+				installer = {
+					install: install
+				},
+				actual = this.t.install(installer);
+
+			return promise.when(actual, function (container) {
+				assert.ok(install.verify());
+				assert.equal(container, t);
+				assert.equal(typeof actual.then, 'function');
+			});
+		},
+
+		'test component configs are added to the kernel': function () {
+			var component = {},
+				addComponentModel =
+					this.mock(this.k).expects('addComponentModel').once().withExactArgs(component);
+
+			return promise.when(this.t.configure({
+				components: [component]
+			}), function (container) {
+				assert.ok(addComponentModel.verify());
+			});
+		},
+
+		'test resolve delegates to kernel': function () {
+			var spec = {},
+				args = {},
+				expected = {},
+				actual,
+				resolve = this.mock(this.k).expects('resolve').once().withExactArgs(spec, args)
+					.returns(expected);
+
+			actual = this.t.resolve(spec, args);
+			assert.ok(resolve.verify());
+			assert.equal(actual, expected);
+		},
+
+		'test release delegates to kernel': function () {
+			var component = {},
+				expected = {},
+				actual,
+				release = this.mock(this.k).expects('release').once().withExactArgs(component)
+					.returns(expected);
+
+			actual = this.t.release(component);
+			assert.ok(release.verify());
+			assert.equal(actual, expected);
+		},
+
+		'test destroy delegates to kernel': function () {
+			var expected = {},
+				actual,
+				destroy = this.mock(this.k).expects('destroy').once().returns(expected);
+
+			actual = this.t.destroy();
+			assert.ok(destroy.verify());
+			assert.equal(actual, expected);
+
+			this.k.destroy.restore();
+		}
+	});
 });

@@ -13,15 +13,11 @@
 // configure requirejs
 define([
 	'./Twine',
-	'./Kernel',
-	'./message/Processor'
+	//'./Kernel',
+	//'./message/Processor'
 ],
 function (Twine, Kernel, Processor) {
 	return {
-		testTwine: Twine,
-		testKernel: Kernel,
-		testMessage: {
-			testProcessor: Processor
-		}
+		testTwine: Twine
 	};
 });

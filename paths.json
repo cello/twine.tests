@@ -1,9 +1,11 @@
 {
 	"patr": "external/patr",
 	"sinon": "external/sinon",
-	"compose": "external/twine/support/compose",
+	"promised-io": "external/promised-io",
 	"twine": "external/twine",
 	"promise": "external/twine/support/promise",
-	"test": ".",
-	"lang": "external/twine/support/lang"
+	"compose": "external/twine/support/compose",
+	"lang": "external/twine/support/lang",
+	"dojo": "external/dojo",
+	"test": "."
 }
