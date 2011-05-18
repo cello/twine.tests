@@ -10,60 +10,119 @@
 */
 /*global define: false, require: false */
 
-define(['patr/assert', 'twine/Kernel', 'twine/util/error'], function (assert, Kernel, error) {
-	var kernel,
-		fiber = {
-			id: 'test',
-			init: function () {
-				this.initialized = true;
-			},
-			terminate: function () {
-				this.dead = true;
-			}
+define([
+	'test/promiseTestCase',
+	'assert',
+	'twine/Kernel',
+	'promise',
+	'twine/util/error',
+	'twine/model/Registry',
+	'twine/model/Builder'
+], function (testCase, assert, Kernel, promise, error, ModelRegistry, ModelBuilder) {
+	var originalRequire = require,
+		isBrowser = typeof window !== "undefined";
+
+	function browserOnly(test) {
+		return function () {
+			// for now, cause an error so that it draws attention when not in a browser
+			assert.ok(isBrowser, 'browser only test');
+			return test.apply(this, arguments);
 		};
-
-	function setUp() {
-		if (kernel) {
-			kernel.destroy();
-		}
-
-		kernel = new Kernel();
-		fiber.initialized = false;
-		fiber.dead = false;
 	}
 
-	return {
-		'test fiber is initialized when added': function () {
-			setUp();
-			kernel.addFiber(fiber);
-			assert.ok(fiber.initialized, 'fiber should be initialized when added to kernel');
-		},
-		'test fiber is terminated when kernel is destroyed': function () {
-			setUp();
-			kernel.addFiber(fiber);
-			kernel.destroy();
-			assert.ok(fiber.dead, 'fiber should be terminated when kernel is destroyed');
-		},
-
-		'test fibers cannot be added with duplicate names': function () {
-			setUp();
-			kernel.addFiber(fiber);
-			assert.throws(function () {
-				kernel.addFiber(fiber);
-			}, error.FiberAlreadyExists, 'duplicate fibers should throw');
-		},
-
-		'test event is emitted when fiber is added': function () {
-			var fired = false;
-
-			setUp();
-			kernel.on('fiberAdded', function (f) {
-				fired = true;
-				assert.strictEqual(f, fiber, 'fiber should be passed to fiberAdded event');
+	return testCase({
+		setUp: function () {
+			this.builder = new ModelBuilder();
+			this.registry = new ModelRegistry();
+			this.k = new Kernel({
+				modelBuilder: this.builder,
+				modelRegistry: this.registry
 			});
+		},
 
-			kernel.addFiber(fiber);
-			assert.ok(fired, 'kernel should fire a fiberAdded event when a fiber is added');
+		tearDown: function () {
+			//require = originalRequire;
+		},
+
+		'test kernel builds a default model registry': function () {
+			assert.ok(this.k.modelRegistry instanceof ModelRegistry);
+		},
+
+		'test kernel builds a default model builder': function () {
+			assert.ok(this.k.modelBuilder instanceof ModelBuilder);
+		},
+
+		'test kernel accepts an alternative model registry': function () {
+			var r = {},
+				k = new Kernel({
+					modelRegistry: r
+				});
+
+			assert.equal(k.modelRegistry, r);
+		},
+
+		'test kernel accepts an alternative model builder': function () {
+			var b = {},
+				k = new Kernel({
+					modelBuilder: b
+				});
+
+			assert.equal(k.modelBuilder, b);
+		},
+
+		'test fiber must have an id': function () {
+			var fiber = {},
+				k = this.k;
+
+			assert.throws(function () {
+				k.addFiber(fiber);
+			}, error.MissingId);
+		},
+
+		'test fiber must have a unique id': function () {
+			var f1 = {
+					id: 'dup',
+					init: function () {}
+				},
+				f2 = {
+					id: 'dup',
+					init: function () {}
+				},
+				k = this.k;
+
+			k.addFiber(f1);
+			assert.throws(function () {
+				k.addFiber(f2);
+			}, error.DuplicateFiber);
+		},
+
+		'test fiber is initialized when added': function () {
+			var expected = {},
+				actual,
+				init = this.mock().once().withExactArgs(this.k).returns(expected),
+				fiber = {
+					id: 'fiber',
+					init: init
+				};
+
+			actual = this.k.addFiber(fiber);
+			assert.ok(init.verify());
+			assert.equal(actual, expected);
+		},
+
+		'test addComponentModel processes config and adds model to the registry': function () {
+			var config = {},
+				model = {},
+				process = this.mock(this.builder).expects('process').once()
+					.withExactArgs(config).returns(model),
+				addModel = this.mock(this.registry).expects('addModel').once()
+					.withExactArgs(model).returns(model);
+
+			return promise.when(this.k.addComponentModel(config), function (m) {
+				assert.ok(process.verify());
+				assert.ok(addModel.verify());
+				assert.equal(m, model, 'model should be resolved');
+			});
 		}
-	};
+	});
 });
