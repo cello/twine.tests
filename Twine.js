@@ -4,9 +4,9 @@
  * Available via the new BSD License.
  */
 /*jshint
-    bitwise: false, curly: true, eqeqeq: true, forin: true, immed: true, indent: 4, maxlen: 100,
-    newcap: true, noarg: true, noempty: true, onevar: true, passfail: false, undef: true,
-    white: true
+	bitwise: false, curly: true, eqeqeq: true, forin: true, immed: true, indent: 4, maxlen: 100,
+	newcap: true, noarg: true, noempty: true, onevar: true, passfail: false, strict: true,
+	undef: true, white: true
 */
 /*global define: false, require: true */
 
@@ -17,6 +17,7 @@ define([
 	'twine/Kernel',
 	'promise'
 ], function (testCase, assert, Twine, Kernel, promise) {
+	'use strict';
 	var originalRequire = require,
 		isBrowser = typeof window !== "undefined";
 

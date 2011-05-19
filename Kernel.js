@@ -4,9 +4,9 @@
  * Available via the new BSD License.
  */
 /*jshint
-    bitwise: false, curly: true, eqeqeq: true, forin: true, immed: true, indent: 4, maxlen: 100,
-    newcap: true, noarg: true, noempty: true, onevar: true, passfail: false, undef: true,
-    white: true
+	bitwise: false, curly: true, eqeqeq: true, forin: true, immed: true, indent: 4, maxlen: 100,
+	newcap: true, noarg: true, noempty: true, onevar: true, passfail: false, strict: true,
+	undef: true, white: true
 */
 /*global define: false, require: false */
 
@@ -19,17 +19,7 @@ define([
 	'twine/model/Registry',
 	'twine/model/Builder'
 ], function (testCase, assert, Kernel, promise, error, ModelRegistry, ModelBuilder) {
-	var originalRequire = require,
-		isBrowser = typeof window !== "undefined";
-
-	function browserOnly(test) {
-		return function () {
-			// for now, cause an error so that it draws attention when not in a browser
-			assert.ok(isBrowser, 'browser only test');
-			return test.apply(this, arguments);
-		};
-	}
-
+	'use strict';
 	return testCase({
 		setUp: function () {
 			this.builder = new ModelBuilder();
@@ -41,7 +31,7 @@ define([
 		},
 
 		tearDown: function () {
-			//require = originalRequire;
+			this.k.destroy();
 		},
 
 		'test kernel builds a default model registry': function () {
@@ -123,6 +113,68 @@ define([
 				assert.ok(addModel.verify());
 				assert.equal(m, model, 'model should be resolved');
 			});
+		},
+
+		'test resolve gets model from registry and resolves it': function () {
+			var spec = {},
+				args = {},
+				instance = {},
+				model = {
+					resolve: this.mock().once().withExactArgs(args).returns(instance)
+				},
+				getModel = this.mock(this.registry).expects('getModel').once()
+					.withExactArgs(spec).returns(model);
+
+			return promise.when(this.k.resolve(spec, args), function (component) {
+				assert.ok(model.resolve.verify());
+				assert.ok(getModel.verify());
+				assert.equal(component, instance);
+			});
+		},
+
+		'test release gets model from registry and releases it': function () {
+			var instance = {},
+				expected = {},
+				model = {
+					release: this.mock().once().returns(expected)
+				},
+				getModel = this.mock(this.registry).expects('getModel').once().returns(model);
+
+			return promise.when(this.k.release(instance), function (actual) {
+				assert.ok(model.release.verify());
+				assert.ok(getModel.verify());
+				assert.equal(getModel.getCall(0).args[0].instance, instance);
+				assert.equal(actual, expected);
+			});
+		},
+
+		'test destroy terminates fibers': function () {
+			var fiber = {
+				id: 'terminate',
+				init: this.spy(),
+				terminate: this.spy()
+			};
+
+			this.k.addFiber(fiber);
+			this.k.destroy();
+
+			assert.ok(fiber.terminate.called);
+		},
+
+		'test destroys model registry': function () {
+			var destroy = this.mock(this.registry).expects('destroy').once();
+
+			this.k.destroy();
+			assert.ok(destroy.verify());
+			this.registry.destroy.restore();
+		},
+
+		'test destroys model builder': function () {
+			var destroy = this.mock(this.builder).expects('destroy').once();
+
+			this.k.destroy();
+			assert.ok(destroy.verify());
+			this.builder.destroy.restore();
 		}
 	});
 });
