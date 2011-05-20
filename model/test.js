@@ -12,15 +12,15 @@
 
 // configure requirejs
 define([
-	'./testTwine',
-	'./testKernel',
-	'./model/test'
+	'./testBuilder',
+	//'./testModel',
+	//'./testRegistry'
 ],
-function (Twine, Kernel, Model) {
+function (Builder, Model, Registry) {
 	'use strict';
 	return {
-		'test Twine': Twine,
-		'test Kernel': Kernel,
-		'test Model': Model
+		'test Builder': Builder,
+		//'test Model': Model,
+		//'test Registry': Registry
 	};
 });
