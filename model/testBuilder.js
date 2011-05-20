@@ -41,7 +41,9 @@ define([
 		},
 
 		'test processors are called in sequence': function () {
-			var config = {},
+			var config = {
+					id: 'id'
+				},
 				p1 = {
 					process: this.spy(function (model, next) {
 						return next();
@@ -65,7 +67,9 @@ define([
 		},
 
 		'test processors must call next': function () {
-			var config = {},
+			var config = {
+					id: 'id'
+				},
 				p1 = {
 					process: this.spy(function (model, next) {
 						return model;
@@ -88,7 +92,9 @@ define([
 		},
 
 		'test processor can replace the model': function () {
-			var config = {},
+			var config = {
+					id: 'id'
+				},
 				intercept = {},
 				p1 = {
 					process: this.spy(function (model, next) {
@@ -111,7 +117,9 @@ define([
 		},
 
 		'test model is returned when processor does not return a value': function () {
-			var config = {},
+			var config = {
+					id: 'id'
+				},
 				p1 = {
 					process: this.spy()
 				};

@@ -13,14 +13,14 @@
 // configure requirejs
 define([
 	'./testBuilder',
-	//'./testModel',
+	'./testModel',
 	'./testRegistry'
 ],
-function (Builder, /*Model,*/ Registry) {
+function (Builder, Model, Registry) {
 	'use strict';
 	return {
 		'test Builder': Builder,
-		//'test Model': Model,
+		'test Model': Model,
 		'test Registry': Registry
 	};
 });
