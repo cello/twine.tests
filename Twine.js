@@ -15,8 +15,9 @@ define([
 	'assert',
 	'twine',
 	'twine/Kernel',
-	'promise'
-], function (testCase, assert, Twine, Kernel, promise) {
+	'promise',
+	'twine/util/error'
+], function (testCase, assert, Twine, Kernel, promise, error) {
 	'use strict';
 	var originalRequire = require,
 		isBrowser = typeof window !== "undefined";
@@ -269,6 +270,25 @@ define([
 			assert.equal(actual, expected);
 
 			this.k.destroy.restore();
+		},
+
+		'test calling public APIs after container is destroyed throws': function () {
+			var t = new Twine();
+
+			t.destroy();
+
+			assert.throws(function () {
+				t.configure();
+			}, error.ContainerDestroyed);
+			assert.throws(function () {
+				t.install();
+			}, error.ContainerDestroyed);
+			assert.throws(function () {
+				t.resolve();
+			}, error.ContainerDestroyed);
+			assert.throws(function () {
+				t.release();
+			}, error.ContainerDestroyed);
 		}
 	});
 });
