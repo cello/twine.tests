@@ -25,6 +25,7 @@ define([
 		},
 
 		tearDown: function () {
+			this.b.destroy();
 		},
 
 		'test has a process function': function () {

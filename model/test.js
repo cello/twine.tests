@@ -14,13 +14,13 @@
 define([
 	'./testBuilder',
 	//'./testModel',
-	//'./testRegistry'
+	'./testRegistry'
 ],
-function (Builder, Model, Registry) {
+function (Builder, /*Model,*/ Registry) {
 	'use strict';
 	return {
 		'test Builder': Builder,
 		//'test Model': Model,
-		//'test Registry': Registry
+		'test Registry': Registry
 	};
 });
