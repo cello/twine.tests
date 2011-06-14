@@ -12,4 +12,7 @@
 	url = git://github.com/dojo/dojo.git
 [submodule "external/promised-io"]
 	path = external/promised-io
-	url = https://github.com/kriszyp/promised-io
+	url = git://github.com/kriszyp/promised-io
+[submodule "external/requirejs"]
+	path = external/requirejs
+	url = git://github.com/jrburke/requirejs.git

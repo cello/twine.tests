@@ -7,7 +7,7 @@
 				async: true
 			};
 		</script>
-		<script src="external/dojo/dojo.js"></script>
+		<script src="external/requirejs/require.js"></script>
 		<script>
 			require({
 				baseUrl: './',
@@ -15,14 +15,12 @@
 					{
 						name: "twine",
 						location: "external/twine/lib",
-						lib: ".",
 						main: "Twine"
 					},
 					{
 						name: 'dojo',
 						location: 'external/dojo',
-						main: 'main',
-						lib: '.'
+						main: 'main'
 					}
 				],
 				paths: {
@@ -39,7 +37,9 @@
 				}
 			}, ['test/all', 'patr/runner'], function (tests, patr) {
 				'use strict';
+                console.time('tests');
 				patr.run(tests);
+                console.timeEnd('tests');
 			});
 
 		</script>
