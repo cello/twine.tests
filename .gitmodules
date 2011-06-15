@@ -1,6 +1,6 @@
 [submodule "external/twine"]
 	path = external/twine
-	url = git://github.com/neonstalwart/twine.git
+	url = git://github.com/cello/twine.git
 [submodule "external/patr"]
 	path = external/patr
 	url = git://github.com/kriszyp/patr.git
