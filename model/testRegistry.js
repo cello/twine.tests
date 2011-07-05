@@ -103,7 +103,7 @@ define([
 			assert.equal(actual, model);
 		},
 
-		'test getModel assumes a string as a request is for an id': function () {
+		'test getModel assumes a string as a request is an id': function () {
 			this.r.addModel(this.m);
 
 			assert.equal(this.r.getModel(this.m.id), this.m);
