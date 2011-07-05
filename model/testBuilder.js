@@ -13,7 +13,7 @@
 define([
 	'test/promiseTestCase',
 	'assert',
-	'promise',
+	'twine/support/promise',
 	'twine/model/Builder',
 	'twine/model/Model'
 ], function (testCase, assert, promise, ModelBuilder, Model) {

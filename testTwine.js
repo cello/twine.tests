@@ -15,7 +15,7 @@ define([
 	'assert',
 	'twine',
 	'twine/Kernel',
-	'promise',
+	'twine/support/promise',
 	'twine/util/error'
 ], function (testCase, assert, Twine, Kernel, promise, error) {
 	'use strict';

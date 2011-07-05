@@ -14,7 +14,7 @@ define([
 	'test/promiseTestCase',
 	'assert',
 	'twine/Kernel',
-	'promise',
+	'twine/support/promise',
 	'twine/util/error',
 	'twine/model/Registry',
 	'twine/model/Builder'

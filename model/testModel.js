@@ -8,14 +8,14 @@
 	newcap: true, noarg: true, noempty: true, onevar: true, passfail: false, strict: true,
 	undef: true, white: true
 */
-/*global define: false, require: false */
+/*global define: false, require: true */
 
 define([
 	'test/promiseTestCase',
 	'assert',
 	'twine/model/Model',
 	'twine/util/error',
-	'promise'
+	'twine/support/promise'
 ], function (testCase, assert, Model, error, promise) {
 	'use strict';
 	return testCase({
@@ -135,7 +135,7 @@ define([
 				assert.ok(listen.calledWithExactly(component));
 			});
 		},
-		
+
 		'test model needs a lifecycle to release': function () {
 			var config = {
 					id: 'id'
@@ -146,7 +146,7 @@ define([
 				m.release();
 			}, error.MissingLifecycle);
 		},
-		
+
 		'test model uses lifecycle to release the component': function () {
 			var test = this,
 				release = test.life.release,
@@ -155,29 +155,34 @@ define([
 			test.m.release(args);
 			assert.ok(release.called);
 		},
-		
+
 		'test model emits "componentReleased" when component is released': function () {
 			var listen = this.spy(),
 				instance = {};
 			this.m.on('componentReleased', listen);
-			
+
 			this.m.release(instance);
-			
+
 			assert.ok(listen.called);
 			assert.ok(listen.calledWithExactly(instance));
 		},
-		
+
 		'test addMixin mixes a mixin into the mixin property': function () {
 			var mixin = {
 				foo: 'foo',
 				bar: 'bar'
 			};
-			
+
 			this.m.addMixin(mixin);
-			
+
 			assert.equal(this.m.mixin.foo, mixin.foo);
 			assert.equal(this.m.mixin.bar, mixin.bar);
 			assert.notStrictEqual(this.m.mixin, mixin);
 		}
+
+		// TODO: tests for construct
+		// TODO: tests for deconstruct
+		// TODO: tests for addCommissioner
+		// TODO: tests for destroy
 	});
 });
