@@ -35,11 +35,13 @@ define([
 		},
 
 		'test kernel builds a default model registry': function () {
-			assert.ok(this.k.modelRegistry instanceof ModelRegistry);
+			var k = new Kernel();
+			assert.ok(k.modelRegistry instanceof ModelRegistry);
 		},
 
 		'test kernel builds a default model builder': function () {
-			assert.ok(this.k.modelBuilder instanceof ModelBuilder);
+			var k = new Kernel();
+			assert.ok(k.modelBuilder instanceof ModelBuilder);
 		},
 
 		'test kernel accepts an alternative model registry': function () {
