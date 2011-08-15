@@ -4,19 +4,22 @@
  * Available via the new BSD License.
  */
 /*jshint
-	bitwise: false, curly: true, eqeqeq: true, forin: true, immed: true, indent: 4, maxlen: 100,
-	newcap: true, noarg: true, noempty: true, onevar: true, passfail: false, strict: true,
-	undef: true, white: true
+	asi: false, bitwise: false, boss: false, curly: true, eqeqeq: true, eqnull: false, es5: true,
+	evil: false, expr: true, forin: true, globalstrict: false, immed: true, indent: 4, latedef: true,
+	laxbreak: false, loopfunc: true, maxlen: 100, newcap: true, noarg: true, noempty: true,
+	nonew: true, nomen: false, onevar: true, passfail: false, plusplus: false, shadow: false,
+	strict: false, sub: false, trailing: true, undef: true, white: true
 */
-/*global define: false, require: true */
+/*global define: false, require: false*/
 
 define([
 	'test/promiseTestCase',
 	'assert',
 	'twine/model/Model',
 	'twine/util/error',
-	'twine/support/promise'
-], function (testCase, assert, Model, error, promise) {
+	'twine/support/promise',
+	'twine/Kernel'
+], function (testCase, assert, Model, error, promise, Kernel) {
 	'use strict';
 	return testCase({
 		setUp: function () {
@@ -29,7 +32,10 @@ define([
 			};
 			this.config = {
 				id: 'id',
-				lifecycle: this.life
+				lifecycle: this.life,
+				load: this.spy(),
+				kernel: new Kernel(),
+				module: this.spy()
 			};
 			this.m = new Model(this.config);
 		},
@@ -79,10 +85,10 @@ define([
 				};
 
 			assert.doesNotThrow(function () {
-				new Model(minimal);
+				var m = new Model(minimal);
 			});
 			assert.throws(function () {
-				new Model(inadequate);
+				var m = new Model(inadequate);
 			}, error.MissingId);
 		},
 
@@ -178,11 +184,186 @@ define([
 			assert.equal(this.m.mixin.foo, mixin.foo);
 			assert.equal(this.m.mixin.bar, mixin.bar);
 			assert.notStrictEqual(this.m.mixin, mixin);
-		}
+		},
 
-		// TODO: tests for construct
-		// TODO: tests for deconstruct
-		// TODO: tests for addCommissioner
-		// TODO: tests for destroy
+		'test construct returns a promise': function () {
+			var actual = this.m.construct();
+
+			assert.equal(typeof actual.then, 'function');
+		},
+
+		'test construct creates an instance of a model that is a function': function () {
+			var module = this.m.module;
+
+			return promise.when(this.m.construct(), function (instance) {
+				assert.ok(module.calledWithNew);
+			});
+		},
+
+		'test construct loads unloaded modules': function () {
+			var id = this.m.module = 'abc',
+				module = {},
+				load = this.m.load = this.spy(function (deps, cb) {
+					cb(module);
+				});
+
+			return promise.when(this.m.construct(), function (instance) {
+				assert.equal(instance, module);
+				assert.ok(load.calledWith([id]));
+			});
+		},
+
+		'test construct resolves all dependencies for the model': function () {
+			var model = {
+					resolve: this.spy()
+				},
+				deps = this.m.deps = {
+					a: 'a',
+					b: 'b',
+					c: 'c'
+				},
+				registry = this.m.kernel.modelRegistry = {
+					a: {
+						resolve: this.spy(function () {
+							return this;
+						})
+					},
+					b: {
+						resolve: this.spy(function () {
+							return this;
+						})
+					},
+					c: {
+						resolve: this.spy(function () {
+							return this;
+						})
+					},
+					getModel: this.spy(function (spec) {
+						return this[spec];
+					})
+				};
+
+			return promise.when(this.m.construct(), function (instance) {
+				assert.equal(instance.a, registry.a);
+				assert.equal(instance.b, registry.b);
+				assert.equal(instance.c, registry.c);
+			});
+		},
+
+		'test construct mixes in args': function () {
+			var args = {
+					a: {},
+					b: {}
+				};
+
+			return promise.when(this.m.construct(args), function (instance) {
+				assert.equal(instance.a, args.a);
+				assert.equal(instance.b, args.b);
+			});
+		},
+
+		'test construct emits componentConstructed': function () {
+			var componentConstructed = this.spy();
+
+			this.m.on('componentConstructed', componentConstructed);
+
+			return promise.when(this.m.construct(), function (actual) {
+				assert.ok(componentConstructed.calledWith(actual));
+			});
+		},
+
+		'test construct supports instanceof': function () {
+			var Constructor = this.m.module = function () {};
+
+			return promise.when(this.m.construct(), function (instance) {
+				assert.ok(instance instanceof Constructor);
+			});
+		},
+
+		'test construct applies commissioners': function () {
+			var model = this.m,
+				commissioner = {
+					commission: this.spy(function (instance, model) {
+						return instance;
+					})
+				};
+
+			this.m.addCommissioner(commissioner);
+
+			return promise.when(this.m.construct(), function (instance) {
+				assert.ok(commissioner.commission.calledWith(instance, model));
+			});
+		},
+
+		'test deconstruct emits componentDeconstructed': function () {
+			var model = this.m,
+				deconstructed = this.spy();
+
+			model.on('componentDeconstructed', deconstructed);
+
+			return promise.when(model.construct(), function (instance) {
+				return promise.when(model.deconstruct(instance), function (actual) {
+					assert.equal(actual, instance);
+					assert.ok(deconstructed.calledWith(actual));
+				});
+			});
+		},
+
+		'test deconstruct applies decommissioners': function () {
+			var model = this.m,
+				commissioner = {
+					decommission: this.spy(function (instance, model) {
+						return instance;
+					})
+				};
+
+			model.addCommissioner(commissioner);
+
+			return promise.when(model.construct(), function (instance) {
+				return promise.when(model.deconstruct(instance), function (actual) {
+					assert.ok(commissioner.decommission.calledWith(actual, model));
+				});
+			});
+		},
+
+		'test addCommissioner returns handle to remove commissioner': function () {
+			var model = this.m,
+				commissioner = {
+					commission: this.spy(function (instance, model) {
+						return instance;
+					}),
+					decommission: this.spy(function (instance, model) {
+						return instance;
+					})
+				},
+				handle = model.addCommissioner(commissioner);
+
+			assert.equal(typeof handle.remove, 'function');
+
+			return promise.when(model.construct(), function (instance) {
+				assert.ok(commissioner.commission.calledWith(instance, model));
+				return promise.when(model.deconstruct(instance), function (actual) {
+					assert.ok(commissioner.decommission.calledWith(actual, model));
+					handle.remove();
+					return promise.when(model.construct(), function (instance) {
+						assert.ok(commissioner.commission.calledOnce);
+						return promise.when(model.deconstruct(instance), function (actual) {
+							assert.ok(commissioner.decommission.calledOnce);
+						});
+					});
+				});
+			});
+		},
+
+		'test destroy emits destroyed': function () {
+			var spy = this.spy(),
+				model = this.m;
+
+			model.on('destroyed', spy);
+
+			model.destroy();
+
+			assert.ok(spy.calledWith(model));
+		}
 	});
 });
