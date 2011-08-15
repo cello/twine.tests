@@ -19,8 +19,6 @@ define([
 	'twine/util/error'
 ], function (testCase, assert, Twine, Kernel, promise, error) {
 	'use strict';
-	var originalRequire = require,
-		isBrowser = typeof window !== "undefined";
 
 	return testCase({
 		setUp: function () {
@@ -31,7 +29,6 @@ define([
 		},
 
 		tearDown: function () {
-			require = originalRequire;
 			this.t.destroy();
 		},
 
@@ -62,6 +59,20 @@ define([
 				});
 
 			assert.equal(t.kernel, k);
+		},
+
+		'test assigns a default load function': function () {
+			var t = new Twine();
+			assert.ok(t.load);
+			assert.equal(typeof t.load, 'function');
+		},
+
+		'test uses load passed to the constructor': function () {
+			var load = function () {},
+				t = new Twine({
+					load: load
+				});
+			assert.equal(t.load, load);
 		},
 
 		'test addFiber calls addFiber on kernel': function () {
