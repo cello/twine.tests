@@ -22,14 +22,6 @@ define([
 	var originalRequire = require,
 		isBrowser = typeof window !== "undefined";
 
-	function browserOnly(test) {
-		return function () {
-			// for now, cause an error so that it draws attention when not in a browser
-			assert.ok(isBrowser, 'browser only test');
-			return test.apply(this, arguments);
-		};
-	}
-
 	return testCase({
 		setUp: function () {
 			this.k = new Kernel();
@@ -113,21 +105,20 @@ define([
 			});
 		},
 
-		'test fibers specified as strings are module ids to be loaded': browserOnly(function () {
-			var id = 'abc/foo';
-
-			require = this.spy(function (deps, cb) {
-				cb();
-			});
+		'test fibers specified as strings are module ids to be loaded': function () {
+			var id = 'abc/foo',
+				load = this.stub(this.t, "load", function (deps, cb) {
+					cb();
+				});
 
 			return promise.when(this.t.configure({
 				fibers: [id]
 			}), function (container) {
-				assert.ok(require.called);
-				var spyCall = require.getCall(0);
+				assert.ok(load.called);
+				var spyCall = load.getCall(0);
 				assert.equal(spyCall.args[0][0], id);
 			});
-		}),
+		},
 
 		'test fibers specified as functions are factories to be executed': function () {
 			var fiber = {},
@@ -153,21 +144,20 @@ define([
 			});
 		},
 
-		'test installers specified as strings are treated as module ids': browserOnly(function () {
-			var id = 'abc/foo';
-
-			require = this.spy(function (deps, cb) {
-				cb();
-			});
+		'test installers specified as strings are treated as module ids': function () {
+			var id = 'abc/foo',
+				load = this.stub(this.t, "load", function (deps, cb) {
+					cb();
+				});
 
 			return promise.when(this.t.configure({
 				installers: [id]
 			}), function (container) {
-				assert.ok(require.called);
-				var spyCall = require.getCall(0);
+				assert.ok(load.called);
+				var spyCall = load.getCall(0);
 				assert.equal(spyCall.args[0][0], id);
 			});
-		}),
+		},
 
 		'test installers specified as functions are factories to be executed': function () {
 			var installer = {},
