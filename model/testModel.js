@@ -309,7 +309,7 @@ define([
 			});
 		},
 
-		'test deconstruct applies decommissioners': function () {
+		'test release applies decommissioners': function () {
 			var model = this.m,
 				commissioner = {
 					decommission: this.spy(function (instance, model) {
