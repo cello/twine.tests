@@ -13,15 +13,11 @@
 /*global define: false, require: false*/
 
 define([
-	'./testBuilder',
-	'./testModel',
-	'./testRegistry'
+	'./testManager'
 ],
-function (Builder, Model, Registry) {
+function (Manager) {
 	'use strict';
 	return {
-		'test Builder': Builder,
-		'test Model': Model,
-		'test Registry': Registry
+		'test Manager': Manager
 	};
 });

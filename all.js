@@ -16,13 +16,15 @@
 define([
 	'./testTwine',
 	'./testKernel',
-	'./model/test'
+	'./model/test',
+	'./lifecycle/test'
 ],
-function (Twine, Kernel, Model) {
+function (Twine, Kernel, Model, lifecycle) {
 	'use strict';
 	return {
 		'test Twine': Twine,
 		'test Kernel': Kernel,
-		'test Model': Model
+		'test Model': Model,
+		'test lifecycle': lifecycle
 	};
 });
