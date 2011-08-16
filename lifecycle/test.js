@@ -13,11 +13,13 @@
 /*global define: false, require: false*/
 
 define([
-	'./testManager'
+	'./testManager',
+	'./testSingleton'
 ],
-function (Manager) {
+function (Manager, Singleton) {
 	'use strict';
 	return {
-		'test Manager': Manager
+		'test Manager': Manager,
+		'test Singleton': Singleton
 	};
 });
