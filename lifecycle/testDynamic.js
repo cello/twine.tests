@@ -16,8 +16,8 @@ define([
 	'test/promiseTestCase',
 	'assert',
 	'twine/support/promise',
-	'twine/lifecycle/Singleton'
-], function (testCase, assert, promise, Singleton) {
+	'twine/lifecycle/Dynamic'
+], function (testCase, assert, promise, Dynamic) {
 	'use strict';
 
 	var when = promise.when;
@@ -32,10 +32,10 @@ define([
 				release: this.spy(),
 				deconstruct: this.spy()
 			};
-			this.lifestyle = new Singleton(this.model);
+			this.lifestyle = new Dynamic(this.model);
 		},
 
-		'test Singleton is a lifestyle': function () {
+		'test Dynamic is a lifestyle': function () {
 			var lifestyle = this.lifestyle;
 
 			assert.equal(typeof lifestyle.resolve, 'function');
@@ -54,38 +54,27 @@ define([
 			});
 		},
 
-		'test resolve returns same instance every time': function () {
+		'test resolve returns a different instance every time': function () {
 			var lifestyle = this.lifestyle;
 
 			return when(lifestyle.resolve(), function (expected) {
 				return when(lifestyle.resolve(), function (actual) {
-					assert.equal(actual, expected);
+					assert.notEqual(actual, expected);
 				});
 			});
 		},
 
-		'test resolve returns same instance even after release': function () {
-			var lifestyle = this.lifestyle;
-
-			return when(lifestyle.resolve(), function (expected) {
-				lifestyle.release(expected);
-				return when(lifestyle.resolve(), function (actual) {
-					assert.equal(actual, expected);
-				});
-			});
-		},
-
-		'test destroy releases model if not yet released': function () {
+		'test release deconstructs instance': function () {
 			var lifestyle = this.lifestyle,
 				model = this.model;
 
 			return when(lifestyle.resolve(), function (instance) {
-				lifestyle.destroy();
-				assert.ok(model.release.called);
+				lifestyle.release(instance);
+				assert.ok(model.deconstruct.calledWith(instance));
 			});
 		},
 
-		'test destroy deconstructs model': function () {
+		'test destroy releases unreleased instances': function () {
 			var lifestyle = this.lifestyle,
 				model = this.model;
 

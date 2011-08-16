@@ -14,12 +14,14 @@
 
 define([
 	'./testManager',
-	'./testSingleton'
+	'./testSingleton',
+	'./testDynamic'
 ],
-function (Manager, Singleton) {
+function (Manager, Singleton, Dynamic) {
 	'use strict';
 	return {
 		'test Manager': Manager,
-		'test Singleton': Singleton
+		'test Singleton': Singleton,
+		'test Dynamic': Dynamic
 	};
 });
