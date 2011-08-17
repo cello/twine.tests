@@ -48,6 +48,10 @@ define([
 			assert.equal(typeof this.fiber.terminate, 'function');
 		},
 
+		'test is a commissioner': function () {
+			assert.equal(typeof this.fiber.commission, 'function');
+		},
+
 		'test listens to modelRegistry modelAdded event': function () {
 			this.fiber.init(this.kernel);
 			assert.ok(this.kernel.modelRegistry.on.calledWith('modelAdded'));
@@ -117,7 +121,7 @@ define([
 			listener(model);
 
 			return when(model.resolve(), function (instance) {
-				model.deconstruct(instance);
+				model.release(instance);
 				assert.ok(remove.called);
 			});
 		}

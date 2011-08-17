@@ -280,7 +280,7 @@ define([
 			});
 		},
 
-		'test construct applies commissioners': function () {
+		'test resolve applies commissioners': function () {
 			var model = this.m,
 				commissioner = {
 					commission: this.spy(function (instance, model) {
@@ -290,7 +290,7 @@ define([
 
 			this.m.addCommissioner(commissioner);
 
-			return promise.when(this.m.construct(), function (instance) {
+			return promise.when(this.m.resolve(), function (instance) {
 				assert.ok(commissioner.commission.calledWith(instance, model));
 			});
 		},
@@ -313,14 +313,15 @@ define([
 			var model = this.m,
 				commissioner = {
 					decommission: this.spy(function (instance, model) {
+						console.log('\n\nCALLED\n\n');
 						return instance;
 					})
 				};
 
 			model.addCommissioner(commissioner);
 
-			return promise.when(model.construct(), function (instance) {
-				return promise.when(model.deconstruct(instance), function (actual) {
+			return promise.when(model.resolve(), function (instance) {
+				return promise.when(model.release(instance), function (actual) {
 					assert.ok(commissioner.decommission.calledWith(actual, model));
 				});
 			});
@@ -340,14 +341,14 @@ define([
 
 			assert.equal(typeof handle.remove, 'function');
 
-			return promise.when(model.construct(), function (instance) {
+			return promise.when(model.resolve(), function (instance) {
 				assert.ok(commissioner.commission.calledWith(instance, model));
-				return promise.when(model.deconstruct(instance), function (actual) {
+				return promise.when(model.release(instance), function (actual) {
 					assert.ok(commissioner.decommission.calledWith(actual, model));
 					handle.remove();
-					return promise.when(model.construct(), function (instance) {
+					return promise.when(model.resolve(), function (instance) {
 						assert.ok(commissioner.commission.calledOnce);
-						return promise.when(model.deconstruct(instance), function (actual) {
+						return promise.when(model.release(instance), function (actual) {
 							assert.ok(commissioner.decommission.calledOnce);
 						});
 					});
