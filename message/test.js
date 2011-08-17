@@ -12,27 +12,11 @@
 */
 /*global define: false, require: false*/
 
-// configure requirejs
 define([
-	'./testTwine',
-	'./testKernel',
-	'./model/test',
-	'./lifecycle/test',
-	'./factory/test',
-	'./autoResolver/test',
-	'./navigation/test',
-	'./message/test'
-],
-function (Twine, Kernel, Model, lifecycle, factory, autoResolver, navigation, message) {
+	'./testFiber'
+], function (Fiber) {
 	'use strict';
 	return {
-		'test Twine': Twine,
-		'test Kernel': Kernel,
-		'test Model': Model,
-		'test lifecycle': lifecycle,
-		'test factory': factory,
-		'test auto resolver': autoResolver,
-		'test navigation': navigation,
-		'test message': message
+		'test Fiber': Fiber
 	};
 });
