@@ -13,10 +13,12 @@
 /*global define: false, require: false*/
 
 define([
-	'./testFiber'
-], function (Fiber) {
+	'./testFiber',
+	'./testInterceptorProxy'
+], function (Fiber, InterceptorProxy) {
 	'use strict';
 	return {
-		'test Fiber': Fiber
+		'test Fiber': Fiber,
+		'test interceptor proxy': InterceptorProxy
 	};
 });
