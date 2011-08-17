@@ -15,12 +15,14 @@
 define([
 	'./testFiber',
 	'./testInterceptorProxy',
-	'./testListenerProxy'
-], function (Fiber, InterceptorProxy, ListenerProxy) {
+	'./testListenerProxy',
+	'./testRouter'
+], function (Fiber, InterceptorProxy, ListenerProxy, Router) {
 	'use strict';
 	return {
 		'test Fiber': Fiber,
 		'test interceptor proxy': InterceptorProxy,
-		'test listener proxy': ListenerProxy
+		'test listener proxy': ListenerProxy,
+		'test Router': Router
 	};
 });
