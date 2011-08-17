@@ -13,11 +13,12 @@
 /*global define: false, require: false*/
 
 define([
-	'./testFiber'
-],
-function (Fiber) {
+	'./testFiber',
+	'./testRouter'
+], function (Fiber, Router) {
 	'use strict';
 	return {
-		'test Fiber': Fiber
+		'test Fiber': Fiber,
+		'test Router': Router
 	};
 });
