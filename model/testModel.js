@@ -313,7 +313,6 @@ define([
 			var model = this.m,
 				commissioner = {
 					decommission: this.spy(function (instance, model) {
-						console.log('\n\nCALLED\n\n');
 						return instance;
 					})
 				};

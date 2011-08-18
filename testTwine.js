@@ -77,6 +77,22 @@ define([
 			assert.equal(t.load, load);
 		},
 
+		'test uses load passed to the config': function () {
+			var load = this.spy(function (deps, cb) {
+					cb();
+				}),
+				relative = './abc';
+
+			return promise.when(this.t.configure({
+				load: load,
+				fibers: [relative]
+			}), function (container) {
+				assert.ok(load.called, 'not using load from config');
+				var spyCall = load.getCall(0);
+				assert.equal(spyCall.args[0][0], relative);
+			});
+		},
+
 		'test addFiber calls addFiber on kernel': function () {
 			var expected = {},
 				mock = this.mock(this.k).expects("addFiber").returns(expected).once(),
