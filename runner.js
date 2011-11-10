@@ -11,11 +11,53 @@
 */
 /*global define: false, require: false, process: false*/
 
-require('./node-amd');
-var path = require('path'),
-	tests = process.argv[2] ? path.join(process.cwd(), process.argv[2]) : './all';
 
-define([tests, 'patr/runner'], function (tests, patr) {
-	'use strict';
-	patr.run(tests);
+// setup our global define and require
+require('./external/dojo/dojo');
+
+
+var req = global.require,
+	path = require('path'),
+	args = process.argv,
+	testDep = args[2] || 'test/all';
+
+// configure dojo via global require
+req({
+	baseUrl: __dirname,
+	packages: [
+		{
+			name: 'dojo',
+			location: 'external/dojo'
+		},
+		{
+			name: 'twine',
+			location: 'external/twine',
+			main: 'Twine'
+		},
+		{
+			name: 'patr',
+			location: 'external/patr',
+			main: './runner'
+		},
+		{
+			name: 'promised-io',
+			location: 'external/promised-io'
+		}
+	],
+	paths: {
+		test: "."
+	}
+});
+
+// do some juggling to define node's top level modules
+'assert,sys'.split(',').forEach(function (id) {
+	define(id, require(id));
+});
+
+// make sinon work - dojo doesn't load non-AMD CommonJS modules
+define('sinon', require('./external/sinon'));
+
+// kick start the tests
+req(['patr', testDep], function (patr, test) {
+	patr.run(test);
 });

@@ -13,30 +13,35 @@
 				baseUrl: './',
 				packages: [
 					{
-						name: "twine",
-						location: "external/twine",
-						main: "Twine"
+						name: 'dojo',
+						location: 'external/dojo'
 					},
 					{
-						name: 'dojo',
-						location: 'external/dojo',
-						main: 'main'
+						name: 'twine',
+						location: 'external/twine',
+						main: 'Twine'
+					},
+					{
+						name: 'patr',
+						location: 'external/patr',
+						main: './runner'
+					},
+					{
+						name: 'promised-io',
+						location: 'external/promised-io'
 					}
 				],
 				paths: {
-					test: '.',
+					test: ".",
 					assert: 'external/browser/assert',
 					sinon: 'external/browser/sinon',
 					order: 'external/browser/order',
-					patr: 'external/patr',
-					'promised-io': 'external/promised-io',
 					'promised-io/process': 'external/browser/process'
 				}
-			}, ['test/all', 'patr/runner'], function (tests, patr) {
-				'use strict';
-				patr.run(tests);
+			},
+			['patr', 'test/all'], function (patr, test) {
+				patr.run(test);
 			});
-
 		</script>
 	</head>
 	<body>
