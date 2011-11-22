@@ -250,15 +250,15 @@ define([
 			});
 		},
 
-		'test construct mixes in args': function () {
+		'test construct calls constructor with args': function () {
 			var args = {
 					a: {},
 					b: {}
-				};
+				},
+				test = this;
 
 			return promise.when(this.m.construct(args), function (instance) {
-				assert.equal(instance.a, args.a);
-				assert.equal(instance.b, args.b);
+				assert.ok(test.config.module.calledWith(args));
 			});
 		},
 
