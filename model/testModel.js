@@ -23,12 +23,15 @@ define([
 	'use strict';
 	return testCase({
 		setUp: function () {
-			var c = this.component = {};
+			var c = this.component = {},
+				m;
 			this.life = {
 				resolve: this.spy(function () {
-					return c;
+					return m.commission(c);
 				}),
-				release: this.spy()
+				release: this.spy(function (it) {
+					return m.decommission(it);
+				})
 			};
 			this.config = {
 				id: 'id',
@@ -37,7 +40,7 @@ define([
 				kernel: new Kernel(),
 				module: this.spy()
 			};
-			this.m = new Model(this.config);
+			m = this.m = new Model(this.config);
 		},
 
 		tearDown: function () {
@@ -214,15 +217,7 @@ define([
 		},
 
 		'test construct resolves all dependencies for the model': function () {
-			var model = {
-					resolve: this.spy()
-				},
-				deps = this.m.deps = {
-					a: 'a',
-					b: 'b',
-					c: 'c'
-				},
-				registry = this.m.kernel.modelRegistry = {
+			var registry = this.m.kernel.modelRegistry = {
 					a: {
 						resolve: this.spy(function () {
 							return this;
@@ -242,6 +237,12 @@ define([
 						return this[spec];
 					})
 				};
+
+			this.m.deps = {
+				a: 'a',
+				b: 'b',
+				c: 'c'
+			};
 
 			return promise.when(this.m.construct(), function (instance) {
 				assert.equal(instance.a, registry.a);
@@ -280,6 +281,7 @@ define([
 			});
 		},
 
+		// XXX: lifestyles need to apply commissioners
 		'test resolve applies commissioners': function () {
 			var model = this.m,
 				commissioner = {
@@ -309,6 +311,7 @@ define([
 			});
 		},
 
+		// XXX: lifestyles need to apply decommissioners
 		'test release applies decommissioners': function () {
 			var model = this.m,
 				commissioner = {

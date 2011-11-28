@@ -22,6 +22,7 @@ define([
 
 	var when = promise.when;
 
+	// XXX: add commission/decommission tests
 	return testCase({
 		setUp: function () {
 			var Class = this.Class = function () {};
@@ -30,7 +31,13 @@ define([
 					return new Class();
 				}),
 				release: this.spy(),
-				deconstruct: this.spy()
+				deconstruct: this.spy(),
+				commission: this.spy(function (it) {
+					return it;
+				}),
+				decommission: this.spy(function (it) {
+					return it;
+				})
 			};
 			this.lifestyle = new Singleton(this.model);
 		},
