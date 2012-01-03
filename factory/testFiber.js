@@ -30,7 +30,7 @@ define([
 					bar: 'modules/bar'
 				}
 			};
-			this.next = this.spy();
+			this.next = this.stub().returns(this.model);
 			this.kernel = {
 				modelBuilder: {
 					addProcessor: this.spy()
