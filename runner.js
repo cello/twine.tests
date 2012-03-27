@@ -17,7 +17,6 @@ require('./external/dojo/dojo');
 
 
 var req = global.require,
-	path = require('path'),
 	args = process.argv,
 	testDep = args[2] || 'test/all';
 
@@ -50,8 +49,8 @@ req({
 });
 
 // do some juggling to define node's top level modules
-'assert,sys'.split(',').forEach(function (id) {
-	define(id, require(id));
+'assert,util'.split(',').forEach(function (id) {
+	define(id, function () { return require(id); });
 });
 
 // make sinon work - dojo doesn't load non-AMD CommonJS modules
