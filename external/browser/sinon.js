@@ -20,7 +20,8 @@ define([
 	'order!test/external/sinon/lib/sinon/sandbox.js',
 	'order!test/external/sinon/lib/sinon/test.js',
 	'order!test/external/sinon/lib/sinon/test_case.js',
-	'order!test/external/sinon/lib/sinon/util/fake_timers.js'
+	'order!test/external/sinon/lib/sinon/util/fake_timers.js',
+	'order!test/external/sinon/lib/sinon/match.js'
 ],
 function () {
 	// sinon should have become a global
